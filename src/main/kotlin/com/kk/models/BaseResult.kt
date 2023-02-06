@@ -8,6 +8,6 @@ data class BaseResult <T>(
     val data: T
 )
 
-fun <T> T.toBaseResult(status: String){
-    BaseResult(status, this)
+fun <T> T.toBaseResult(status: String): BaseResult<T>{
+    return BaseResult(status, this)
 }
