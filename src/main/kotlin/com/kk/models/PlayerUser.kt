@@ -1,8 +1,12 @@
 package com.kk.models
 
 import io.ktor.server.websocket.*
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class PlayerUser(
+    val id: String,
     val name: String,
-    override val session: WebSocketServerSession?,
-    ): User
+    var points: Int? = null,
+    override var session: WebSocketServerSession?= null, override val code: String,
+    ): User()
