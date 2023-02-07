@@ -1,7 +1,6 @@
-package com.kk.models.events
+package com.kk.data.models.events
 
-import com.kk.models.PlayerUser
-import com.kk.routes.Answer
+import com.kk.data.models.PlayerUser
 import kotlinx.serialization.Serializable
 
 

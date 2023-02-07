@@ -1,4 +1,4 @@
-package com.kk.models.events
+package com.kk.data.models.events
 
 import kotlinx.serialization.Serializable
 

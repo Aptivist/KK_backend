@@ -1,4 +1,4 @@
-package com.kk.models
+package com.kk.data.models
 
 import io.ktor.server.websocket.*
 import kotlinx.serialization.Serializable

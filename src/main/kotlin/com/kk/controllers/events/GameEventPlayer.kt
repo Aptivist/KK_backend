@@ -1,7 +1,7 @@
-package com.kk.events
+package com.kk.controllers.events
 
-import com.kk.models.PlayerUser
-import com.kk.models.events.Answer
+import com.kk.data.models.PlayerUser
+import com.kk.data.models.events.Answer
 
 
 sealed interface GameEventPlayer {

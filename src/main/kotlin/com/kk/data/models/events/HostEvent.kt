@@ -1,6 +1,6 @@
-package com.kk.models.events
+package com.kk.data.models.events
 
-import com.kk.models.HostUser
+import com.kk.data.models.HostUser
 import kotlinx.serialization.Serializable
 
 @Serializable
