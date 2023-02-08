@@ -5,6 +5,8 @@ import com.kk.data.GameRoomDataSource
 import com.kk.controllers.events.GameEventPlayer
 import com.kk.data.models.PlayerUser
 import com.kk.data.models.events.Answer
+import com.kk.data.models.toBaseResult
+import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 
 class PlayerController(
@@ -16,7 +18,6 @@ class PlayerController(
         currentRoom?.players?.add(playerUser)
         if (currentRoom == null) {
             throw Exception("Game room not found")
-
         } else println("Player $playerUser")
     }
 
@@ -35,9 +36,9 @@ class PlayerController(
         try {
             val currentRoom = gameRoomDataSource.getRoomByCode(code)
             val players = currentRoom?.players
-            currentRoom?.host?.session?.send("[Players]: $players")
+            currentRoom?.host?.session?.sendSerialized(players.toBaseResult("OK"))
             players?.forEach {
-                it.session?.send("[Players]: $players")
+                it.session?.sendSerialized(players.toBaseResult("OK"))
             }
             print("Player list was sent")
         }catch (e: Exception){

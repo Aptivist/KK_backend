@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 abstract class User{
-    abstract val code: String
+    abstract val code: String?
     abstract var session: WebSocketServerSession?
 }
 

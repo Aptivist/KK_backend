@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class HostUser(
     override var session: WebSocketServerSession?,
-    override val code: String
+    override var code: String? = null
 ): User()
