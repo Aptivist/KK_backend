@@ -7,6 +7,8 @@ import com.kk.data.models.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
+import java.util.*
+import kotlin.random.Random
 
 class HostController(
     private val gameRoomDataSource: GameRoomDataSource,
@@ -17,15 +19,19 @@ class HostController(
         const val TIME_MILLIS = 1000L
     }
 
-    fun handleGameRoom(hostUser: HostUser, rules: Rules) {
-        val newRoom = GameRoom(code = hostUser.code, host = hostUser, rules = rules)
+    suspend fun handleGameRoom(hostUser: HostUser, rules: Rules) {
+        val code = generateRandomCode()
+        val newRoom = GameRoom(code = code, host = hostUser, rules = rules)
+        hostUser.code = code
         gameRoomDataSource.addRoom(newRoom)
+        hostUser.session?.sendSerialized(code.toBaseResult("GAME_ROOM_CREATED"))
     }
+
 
     suspend fun onEventHost(event: GameEventHost) {
         when (event) {
             is GameEventHost.OnStartRound -> {
-                startRound(event.hostUser.code)
+                startRound(event.hostUser.code ?: "")
             }
 
             is GameEventHost.AddPoint -> {
@@ -33,9 +39,18 @@ class HostController(
             }
 
             is GameEventHost.NoPoints -> {
-                noPoints(event.hostUser.code)
+                noPoints(event.hostUser.code ?: "")
             }
         }
+    }
+
+    private fun generateRandomCode(): String {
+        val charPool : List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+        return (1..6)
+            .map { _ -> Random.nextInt(0, charPool.size) }
+            .map(charPool::get)
+            .joinToString("")
+            .uppercase(Locale.getDefault())
     }
 
     private suspend fun startRound(code: String) {
@@ -72,7 +87,7 @@ class HostController(
 
 
     private suspend fun addPoint(playerId: String, hostUser: HostUser) {
-        val currentRoom = gameRoomDataSource.getRoomByCode(hostUser.code) ?: return
+        val currentRoom = gameRoomDataSource.getRoomByCode(hostUser.code ?: "") ?: return
         val roundPlayerWon = currentRoom.players.find { it.id == playerId } ?: return
         roundPlayerWon.points?.plus(1)
 
@@ -83,7 +98,6 @@ class HostController(
             gameRoomDataSource.removeRoom(currentRoom)
             currentRoom.host.session?.close(CloseReason(CloseReason.Codes.NORMAL, "NORMAL_CLOSURE"))
         }
-
     }
 
     private suspend fun notifyWinner(currentRoom: GameRoom, roundPlayerWon: PlayerUser, gameIsFinished: Boolean) {
