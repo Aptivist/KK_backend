@@ -1,5 +1,6 @@
 package com.kk.controllers
 
+import com.google.gson.Gson
 import com.kk.controllers.events.GameEventHost
 import com.kk.data.AnswerDataSource
 import com.kk.data.GameRoomDataSource
@@ -20,7 +21,7 @@ class HostController(
     }
 
     suspend fun handleGameRoom(hostUser: HostUser, rules: Rules) {
-        val code = generateRandomCode()
+        val code = "1234"//generateRandomCode()
         val newRoom = GameRoom(code = code, host = hostUser, rules = rules)
         hostUser.code = code
         gameRoomDataSource.addRoom(newRoom)
@@ -65,7 +66,7 @@ class HostController(
         showAnswers(currentRoom, code)
     }
 
-    private suspend fun broadcastTimer(host: User?, players: List<User>?, timer: KKTimer) {
+    private suspend fun broadcastTimer(host: HostUser?, players: List<PlayerUser >?, timer: KKTimer) {
         while (timer.time != -1) {
             host?.session?.sendSerialized(timer.toBaseResult("OK"))
             players?.forEach { player -> player.session?.sendSerialized(timer.toBaseResult("OK")) }
