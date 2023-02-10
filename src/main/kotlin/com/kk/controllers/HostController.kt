@@ -65,7 +65,7 @@ class HostController(
         showAnswers(currentRoom, code)
     }
 
-    private suspend fun broadcastTimer(host: User?, players: List<User>?, timer: KKTimer) {
+    private suspend fun broadcastTimer(host: HostUser?, players: List<PlayerUser >?, timer: KKTimer) {
         while (timer.time != -1) {
             host?.session?.sendSerialized(timer.toBaseResult("OK"))
             players?.forEach { player -> player.session?.sendSerialized(timer.toBaseResult("OK")) }
