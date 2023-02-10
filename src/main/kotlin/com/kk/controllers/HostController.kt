@@ -1,6 +1,5 @@
 package com.kk.controllers
 
-import com.google.gson.Gson
 import com.kk.controllers.events.GameEventHost
 import com.kk.data.AnswerDataSource
 import com.kk.data.GameRoomDataSource
@@ -21,7 +20,7 @@ class HostController(
     }
 
     suspend fun handleGameRoom(hostUser: HostUser, rules: Rules) {
-        val code = "1234"//generateRandomCode()
+        val code = generateRandomCode()
         val newRoom = GameRoom(code = code, host = hostUser, rules = rules)
         hostUser.code = code
         gameRoomDataSource.addRoom(newRoom)

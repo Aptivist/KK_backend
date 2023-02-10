@@ -1,11 +1,12 @@
 package com.kk.controllers
 
 
+import com.kk.controllers.events.GameEventPlayer
 import com.kk.data.AnswerDataSource
 import com.kk.data.GameRoomDataSource
-import com.kk.controllers.events.GameEventPlayer
 import com.kk.data.models.PlayerUser
 import com.kk.data.models.events.Answer
+import com.kk.data.models.toBaseResult
 import io.ktor.server.websocket.*
 
 
@@ -37,11 +38,10 @@ class PlayerController(
             val currentRoom = gameRoomDataSource.getRoomByCode(code)
             val players = currentRoom?.players
             //val playersDTO = players?.map { it.toDTO() }
-            currentRoom?.host?.session?.sendSerialized(players)
+            currentRoom?.host?.session?.sendSerialized(players.toBaseResult("USERS_SENT"))
             players?.forEach {
-                it.session?.sendSerialized(players)
+                it.session?.sendSerialized(players.toBaseResult("USERS_SENT"))
             }
-            print("Player list was sent")
         }catch (e: Exception){
             println(e)
         }

@@ -11,5 +11,5 @@ data class PlayerUser(
     var points: Int? = null,
     @Transient
     override var session: WebSocketServerSession?= null,
-    override val code: String,
+    override var code: String,
     ): User()
