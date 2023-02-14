@@ -99,7 +99,7 @@ class HostController(
 
         if (gameIsFinished) {
             gameRoomDataSource.removeRoom(currentRoom)
-            currentRoom.host.session.close(CloseReason(CloseReason.Codes.NORMAL, "NORMAL_CLOSURE"))
+            currentRoom.host.session.close(CloseReason(CloseReason.Codes.NORMAL, "NORMAL_CLOSE"))
         }
     }
 

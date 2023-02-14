@@ -1,7 +1,5 @@
 package com.kk.data.models
 
-import com.google.gson.annotations.Expose
-import com.google.gson.annotations.SerializedName
 import io.ktor.server.websocket.*
 
 

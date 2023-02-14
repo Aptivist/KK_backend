@@ -1,8 +1,7 @@
 package com.kk
 
-import io.ktor.server.application.*
 import com.kk.plugins.*
-import org.koin.core.Koin
+import io.ktor.server.application.*
 
 fun main(args: Array<String>): Unit =
     io.ktor.server.netty.EngineMain.main(args)
