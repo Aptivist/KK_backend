@@ -25,7 +25,7 @@ fun Route.hostRouting(){
             }
         }catch (e: Exception){
             host.session.close()
-            hostController.removePlayerSession(hostA)
+            hostController.removePlayerSession(host)
         }
 
     }
