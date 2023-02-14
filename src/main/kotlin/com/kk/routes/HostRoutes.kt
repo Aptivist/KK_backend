@@ -1,7 +1,5 @@
 package com.kk.routes
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.kk.controllers.HostController
 import com.kk.controllers.events.mapper.toEvent
 import com.kk.data.models.CreateGameRequest
@@ -17,13 +15,19 @@ fun Route.hostRouting(){
 
     val hostController by inject<HostController> ()
     webSocket("/host") {
-        val (host, rules) = receiveDeserialized<CreateGameRequest>()
-        host.session = this
+        val (rules) = receiveDeserialized<CreateGameRequest>()
+        val host = HostUser(this, code = "")
         hostController.handleGameRoom(hostUser = host, rules = rules)
-        while (true){
-            val event = receiveDeserialized<HostEvent>().toEvent()
-            hostController.onEventHost(event)
+        try {
+            while (true){
+                val event = receiveDeserialized<HostEvent>().toEvent(host)
+                hostController.onEventHost(event)
+            }
+        }catch (e: Exception){
+            host.session.close()
+            hostController.removePlayerSession(hostA)
         }
+
     }
 }
 
