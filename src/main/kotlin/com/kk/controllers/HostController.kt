@@ -24,7 +24,7 @@ class HostController(
         val newRoom = GameRoom(code = code, host = hostUser, rules = rules)
         hostUser.code = code
         gameRoomDataSource.addRoom(newRoom)
-        hostUser.session.sendSerialized(code.toBaseResult("GAME_ROOM_CREATED"))
+        hostUser.session.sendSerialized(newRoom.toBaseResult("GAME_ROOM_CREATED"))
     }
 
 
@@ -59,7 +59,6 @@ class HostController(
         val timer = KKTimer(timerSeconds)
         val players = currentRoom.players
 
-        currentRoom.isInitialized = true
         broadcastTimer(currentRoom.host, players, timer)
         waitForTimerEnd(timer)
         showAnswers(currentRoom, code)
