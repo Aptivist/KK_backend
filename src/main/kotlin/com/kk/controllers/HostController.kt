@@ -24,22 +24,22 @@ class HostController(
         val newRoom = GameRoom(code = code, host = hostUser, rules = rules)
         hostUser.code = code
         gameRoomDataSource.addRoom(newRoom)
-        hostUser.session?.sendSerialized(code.toBaseResult("GAME_ROOM_CREATED"))
+        hostUser.session.sendSerialized(newRoom.toBaseResult("GAME_ROOM_CREATED"))
     }
 
 
     suspend fun onEventHost(event: GameEventHost) {
         when (event) {
             is GameEventHost.OnStartRound -> {
-                startRound(event.hostUser.code ?: "")
+                startRound(event.hostUser.code)
             }
 
             is GameEventHost.AddPoint -> {
-                addPoint(event.playerIdPoint, event.host)
+                addPoint(event.playerIdPoint, event.code)
             }
 
             is GameEventHost.NoPoints -> {
-                noPoints(event.hostUser.code ?: "")
+                noPoints(event.hostUser.code)
             }
         }
     }
@@ -59,16 +59,15 @@ class HostController(
         val timer = KKTimer(timerSeconds)
         val players = currentRoom.players
 
-        currentRoom.isInitialized = true
         broadcastTimer(currentRoom.host, players, timer)
         waitForTimerEnd(timer)
         showAnswers(currentRoom, code)
     }
 
-    private suspend fun broadcastTimer(host: HostUser?, players: List<PlayerUser >?, timer: KKTimer) {
+    private suspend fun broadcastTimer(host: HostUser, players: List<PlayerUser >?, timer: KKTimer) {
         while (timer.time != -1) {
-            host?.session?.sendSerialized(timer.toBaseResult("OK"))
-            players?.forEach { player -> player.session?.sendSerialized(timer.toBaseResult("OK")) }
+            host.session.sendSerialized(timer.toBaseResult("OK"))
+            players?.forEach { player -> player.session.sendSerialized(timer.toBaseResult("OK")) }
             timer.time--
             delay(TIME_MILLIS)
         }
@@ -81,33 +80,37 @@ class HostController(
     private suspend fun showAnswers(currentRoom: GameRoom, code: String) {
         val currentAnswers = answerDataSource.getAnswersByCode(code)
         val statusType = if (currentAnswers.isEmpty()) "NO_ANSWERS" else "OK"
-        currentRoom.host.session?.sendSerialized(currentAnswers.sortedByDescending { it.timeStamp }.reversed().toBaseResult(statusType))
+        currentRoom.host.session.sendSerialized(currentAnswers.sortedByDescending { it.timeStamp }.reversed().toBaseResult(statusType))
         answerDataSource.removeAll(currentAnswers)
     }
 
 
-    private suspend fun addPoint(playerId: String, hostUser: HostUser) {
-        val currentRoom = gameRoomDataSource.getRoomByCode(hostUser.code ?: "") ?: return
-        val roundPlayerWon = currentRoom.players.find { it.id == playerId } ?: return
-        roundPlayerWon.points?.plus(1)
+    private suspend fun addPoint(playerId: String, code: String) {
+        val currentRoom = gameRoomDataSource.getRoomByCode(code ) ?: return
+        val currentHost = currentRoom.host
 
-        val gameIsFinished = roundPlayerWon.points == currentRoom.rules.points
-        notifyWinner(currentRoom, roundPlayerWon, gameIsFinished)
+        val roundPlayerWon = currentRoom.players.find { it.id == playerId } ?: return
+        roundPlayerWon.points = roundPlayerWon.points + 1
+
+        val gameIsFinished = roundPlayerWon.points >= currentRoom.rules.points
+
+        notifyWinner(currentRoom, roundPlayerWon, gameIsFinished,currentHost)
 
         if (gameIsFinished) {
             gameRoomDataSource.removeRoom(currentRoom)
-            currentRoom.host.session?.close(CloseReason(CloseReason.Codes.NORMAL, "NORMAL_CLOSURE"))
+            currentRoom.host.session.close(CloseReason(CloseReason.Codes.NORMAL, "NORMAL_CLOSE"))
         }
     }
 
-    private suspend fun notifyWinner(currentRoom: GameRoom, roundPlayerWon: PlayerUser, gameIsFinished: Boolean) {
+    private suspend fun notifyWinner(currentRoom: GameRoom, roundPlayerWon: PlayerUser, gameIsFinished: Boolean, hostUser: HostUser) {
         val result = GameResult(
             listPlayers = if (gameIsFinished) currentRoom.players else emptyList(),
             roundPlayerWon = roundPlayerWon
         )
-        val statusType = if (gameIsFinished) "GAME_FINISHED" else "WINNER"
+        val statusType = if (gameIsFinished) "GAME_FINISHED" else "WINNER_ROUND"
+        hostUser.session.sendSerialized(result.toBaseResult(statusType))
         currentRoom.players.forEach { player ->
-            player.session?.sendSerialized(result.toBaseResult(statusType))
+            player.session.sendSerialized(result.toBaseResult(statusType))
         }
     }
 
@@ -115,10 +118,16 @@ class HostController(
     private suspend fun noPoints(code: String) {
         val currentRoom = gameRoomDataSource.getRoomByCode(code) ?: return
         currentRoom.players.forEach { player ->
-            player.session?.sendSerialized(
-                GameResult().toBaseResult("NO_WINNER")
+            player.session.sendSerialized(
+                GameResult().toBaseResult("NO_WINNER_ROUND")
             )
         }
+    }
+
+    suspend fun removePlayerSession(hostUser: HostUser){
+        val currentRoom = gameRoomDataSource.getRoomByCode(hostUser.code)?: return
+        currentRoom.players.forEach { it.session.close() }
+        gameRoomDataSource.removeRoom(currentRoom)
     }
 
 

@@ -1,13 +1,14 @@
 package com.kk.routes
 
 import com.kk.controllers.PlayerController
-import com.kk.controllers.events.GameEventPlayer
 import com.kk.controllers.events.mapper.toEvent
+import com.kk.data.models.AddPlayerRequest
 import com.kk.data.models.PlayerUser
 import com.kk.data.models.events.PlayerEvent
 import com.kk.data.models.toBaseResult
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import io.ktor.websocket.*
 import org.koin.ktor.ext.inject
 import java.util.*
 import kotlin.random.Random
@@ -16,16 +17,20 @@ import kotlin.random.Random
 fun Route.playerRouting(){
     val playerController by inject<PlayerController>()
     webSocket("/player") {
-        val player = receiveDeserialized<PlayerUser>()
-        player.session = this
-        player.code = generateRandomCode()
+        val (name,code) = receiveDeserialized<AddPlayerRequest>()
+        val player = PlayerUser(id = generateRandomCode(), name =name, points = 0, session = this, code = code)
         playerController.handlePlayerConnection(player)
         sendSerialized(player.toBaseResult("CONNECTED"))
-
-        while (true){
-            val event = receiveDeserialized<PlayerEvent>().toEvent()
-            playerController.onEventPlayer(event)
+        try {
+            while (true){
+                val event = receiveDeserialized<PlayerEvent>().toEvent(player)
+                playerController.onEventPlayer(event)
+            }
+        }catch (e: Exception){
+            playerController.removeFromGameRoom(player)
+            player.session.close()
         }
+
     }
 }
 

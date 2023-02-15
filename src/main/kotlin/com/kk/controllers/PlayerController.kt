@@ -22,30 +22,35 @@ class PlayerController(
         } else println("Player $playerUser")
     }
 
-    suspend fun onEventPlayer(event: GameEventPlayer){
-        when(event){
-            is GameEventPlayer.OnSendAnswer -> {sendAnswer(event.answer)}
-            is GameEventPlayer.OnShowListPlayers -> {showPlayers(event.playerUser.code)}
+    suspend fun onEventPlayer(event: GameEventPlayer) {
+        when (event) {
+            is GameEventPlayer.OnSendAnswer -> {
+                sendAnswer(event.player, event.answer)
+            }
+
+            is GameEventPlayer.OnShowListPlayers -> {
+                showPlayers(event.player.code)
+            }
         }
     }
 
-    private fun sendAnswer(answer: Answer?){
+    private fun sendAnswer(playerUser: PlayerUser, answer: Answer?) {
+        answer?.playerId = playerUser.id
         answer?.let { answerDataSource.addAnswer(it) }
     }
 
     private suspend fun showPlayers(code: String) {
-        try {
-            val currentRoom = gameRoomDataSource.getRoomByCode(code)
-            val players = currentRoom?.players
-            //val playersDTO = players?.map { it.toDTO() }
-            currentRoom?.host?.session?.sendSerialized(players.toBaseResult("USERS_SENT"))
-            players?.forEach {
-                it.session?.sendSerialized(players.toBaseResult("USERS_SENT"))
-            }
-        }catch (e: Exception){
-            println(e)
+        val currentRoom = gameRoomDataSource.getRoomByCode(code)
+        val players = currentRoom?.players
+        currentRoom?.host?.session?.sendSerialized(players.toBaseResult("USERS_SENT"))
+        players?.forEach {
+            it.session.sendSerialized(players.toBaseResult("USERS_SENT"))
         }
+    }
 
+    fun removeFromGameRoom(playerUser: PlayerUser){
+        val currentRoom = gameRoomDataSource.getRoomByCode(playerUser.code) ?: return
+        currentRoom.players.removeIf { it.id == playerUser.id }
     }
 
 
