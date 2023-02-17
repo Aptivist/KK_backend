@@ -17,7 +17,6 @@ class PlayerController(
     fun handlePlayerConnection(playerUser: PlayerUser) {
         val currentRoom = gameRoomDataSource.getRoomByCode(playerUser.code)
         currentRoom?.players?.add(playerUser)
-        println(currentRoom)
         if (currentRoom == null) {
             throw Exception("Game room not found")
         } else println("Player $playerUser")
