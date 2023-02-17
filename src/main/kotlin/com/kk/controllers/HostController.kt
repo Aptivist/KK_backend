@@ -30,6 +30,7 @@ class HostController(
 
     suspend fun onEventHost(event: GameEventHost) {
         when (event) {
+
             is GameEventHost.OnStartRound -> {
                 startRound(event.hostUser.code)
             }
@@ -40,6 +41,10 @@ class HostController(
 
             is GameEventHost.NoPoints -> {
                 noPoints(event.hostUser.code)
+            }
+
+            is GameEventHost.OnStartGame -> {
+                startGame(event.hostUser.code)
             }
         }
     }
@@ -102,15 +107,25 @@ class HostController(
         }
     }
 
+    private suspend fun startGame(code: String){
+        val currentRoom = gameRoomDataSource.getRoomByCode(code)
+        val players = currentRoom?.players
+        currentRoom?.host?.session?.sendSerialized(players.toBaseResult("INITIALIZED"))
+        players?.forEach {
+            it.session.sendSerialized(players.toBaseResult("INITIALIZED"))
+        }
+    }
     private suspend fun notifyWinner(currentRoom: GameRoom, roundPlayerWon: PlayerUser, gameIsFinished: Boolean, hostUser: HostUser) {
         val result = GameResult(
             listPlayers = if (gameIsFinished) currentRoom.players else emptyList(),
             roundPlayerWon = roundPlayerWon
         )
-        val statusType = if (gameIsFinished) "GAME_FINISHED" else "WINNER_ROUND"
+        val statusType = if (gameIsFinished) "GAME_FINISHED" else "ROUND_FINISHED"
         hostUser.session.sendSerialized(result.toBaseResult(statusType))
         currentRoom.players.forEach { player ->
-            player.session.sendSerialized(result.toBaseResult(statusType))
+            if (player.id == roundPlayerWon.id){
+                player.session.sendSerialized(result.toBaseResult("WINNER_ROUND"))
+            }else player.session.sendSerialized(result.toBaseResult(statusType))
         }
     }
 
