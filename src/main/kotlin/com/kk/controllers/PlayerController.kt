@@ -17,6 +17,7 @@ class PlayerController(
     fun handlePlayerConnection(playerUser: PlayerUser) {
         val currentRoom = gameRoomDataSource.getRoomByCode(playerUser.code)
         currentRoom?.players?.add(playerUser)
+        println(currentRoom)
         if (currentRoom == null) {
             throw Exception("Game room not found")
         } else println("Player $playerUser")
@@ -42,9 +43,9 @@ class PlayerController(
     private suspend fun showPlayers(code: String) {
         val currentRoom = gameRoomDataSource.getRoomByCode(code)
         val players = currentRoom?.players
-        currentRoom?.host?.session?.sendSerialized(players.toBaseResult("USERS_SENT"))
+        currentRoom?.host?.session?.sendSerialized(players.toBaseResult("WAITING"))
         players?.forEach {
-            it.session.sendSerialized(players.toBaseResult("USERS_SENT"))
+            it.session.sendSerialized(players.toBaseResult("WAITING"))
         }
     }
 

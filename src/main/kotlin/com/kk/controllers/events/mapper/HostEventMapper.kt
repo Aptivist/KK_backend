@@ -6,6 +6,7 @@ import com.kk.data.models.events.HostEvent
 
 fun HostEvent.toEvent(host: HostUser): GameEventHost {
     return when(event){
+        "START_GAME" -> GameEventHost.OnStartGame(host)
         "START_ROUND" -> GameEventHost.OnStartRound(host)
         "ADD_POINT" -> GameEventHost.AddPoint(playerIdPoint?: "", host.code)
         "NO_POINTS" -> GameEventHost.NoPoints(host)
