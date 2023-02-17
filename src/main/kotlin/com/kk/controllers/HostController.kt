@@ -31,6 +31,7 @@ class HostController(
     suspend fun onEventHost(event: GameEventHost) {
         when (event) {
 
+
             is GameEventHost.OnStartRound -> {
                 startRound(event.hostUser.code)
             }
@@ -45,6 +46,10 @@ class HostController(
 
             is GameEventHost.OnStartGame -> {
                 startGame(event.hostUser.code)
+            }
+
+            is GameEventHost.ShowAnswers -> {
+                showAnswers(event.hostUser.code)
             }
         }
     }
@@ -66,7 +71,6 @@ class HostController(
 
         broadcastTimer(currentRoom.host, players, timer)
         waitForTimerEnd(timer)
-        showAnswers(currentRoom, code)
     }
 
     private suspend fun broadcastTimer(host: HostUser, players: List<PlayerUser >?, timer: KKTimer) {
@@ -82,7 +86,8 @@ class HostController(
         delay((timer.time + 1) * TIME_MILLIS)
     }
 
-    private suspend fun showAnswers(currentRoom: GameRoom, code: String) {
+    private suspend fun showAnswers(code: String) {
+        val currentRoom = gameRoomDataSource.getRoomByCode(code ) ?: return
         val currentAnswers = answerDataSource.getAnswersByCode(code)
         val statusType = if (currentAnswers.isEmpty()) "NO_ANSWERS" else "OK"
         currentRoom.host.session.sendSerialized(currentAnswers.sortedByDescending { it.timeStamp }.reversed().toBaseResult(statusType))
