@@ -10,6 +10,7 @@ fun HostEvent.toEvent(host: HostUser): GameEventHost {
         "START_ROUND" -> GameEventHost.OnStartRound(host)
         "ADD_POINT" -> GameEventHost.AddPoint(playerIdPoint?: "", host.code)
         "NO_POINTS" -> GameEventHost.NoPoints(host)
+        "SHOW_ANSWERS" -> GameEventHost.ShowAnswers(host)
         //"NEXT_QUESTION" -> GameEventHost.
         else -> throw Exception("Error")
     }
