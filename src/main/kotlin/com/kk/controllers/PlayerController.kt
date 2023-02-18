@@ -4,22 +4,30 @@ package com.kk.controllers
 import com.kk.controllers.events.GameEventPlayer
 import com.kk.data.AnswerDataSource
 import com.kk.data.GameRoomDataSource
+import com.kk.data.models.BaseResult
 import com.kk.data.models.PlayerUser
 import com.kk.data.models.events.Answer
 import com.kk.data.models.toBaseResult
 import io.ktor.server.websocket.*
+import io.ktor.websocket.*
 
 
 class PlayerController(
     private val gameRoomDataSource: GameRoomDataSource,
     private val answerDataSource: AnswerDataSource
 ) {
-    fun handlePlayerConnection(playerUser: PlayerUser) {
+    suspend fun handlePlayerConnection(playerUser: PlayerUser) {
         val currentRoom = gameRoomDataSource.getRoomByCode(playerUser.code)
-        currentRoom?.players?.add(playerUser)
-        if (currentRoom == null) {
-            throw Exception("Game room not found")
-        } else println("Player $playerUser")
+        currentRoom?.let {
+            println("Player $playerUser")
+            if (it.players.size + 1 <= it.rules.maxPlayers){
+                it.players.add(playerUser)
+            } else {
+                playerUser.session.close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "EXCEEDED_MAXIMUM_PLAYERS"))
+            }
+        } ?: playerUser.session.close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "SESSION_CODE_NOT_VALID"))
+
+
     }
 
     suspend fun onEventPlayer(event: GameEventPlayer) {
