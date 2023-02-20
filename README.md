@@ -41,7 +41,7 @@ This endpoint could be used to set up the game, such as configuring the number o
 Message
 
 
-sh
+```sh
 {
     "rules": {
         "maxPlayers": 2,    // Total of players (Int)
@@ -49,11 +49,12 @@ sh
         "timerSeconds": 10  // Time of session (Int)
     }
 }
+```
 
 
 Message Response
 
-sh
+```sh
 {
   "status": "GAME_ROOM_CREATED",    // Message (String)
   "data": {
@@ -71,6 +72,7 @@ sh
     ]
   }
 }
+```
 
 
 
@@ -81,15 +83,15 @@ This endpoint could be used to start a new round of the game.
 Message
 
 
-sh
+```sh
 {
     "event":"START_ROUND"    // Message (String)
 }
-
+```
 
 Message Response
 
-sh
+```sh
 {
   "status": "GAME_ROOM_CREATED",    // Message (String)
   "data": {
@@ -107,7 +109,7 @@ sh
     ]
   }
 }
-
+```
 
 
 ###  Send point
@@ -117,16 +119,16 @@ This endpoint could be used to send a player’s score or points to the server.
 Message
 
 
-sh
+```sh
 {
     "event":"ADD_POINT",            // Message (String)
     "playerIdPoint": "B5MXXTAL"     // Player's ID (String)
 }
-
+```
 
 Message Response
 
-sh
+```sh
 {
   "status": "GAME_ROOM_CREATED",    // Message (String)
   "data": {
@@ -144,7 +146,7 @@ sh
     ]
   }
 }
-
+```
 
 
 ### No answer
@@ -154,15 +156,16 @@ This endpoint could be used to indicate that a player did not provide an answer 
 Message
 
 
-sh
+```sh
 {
     "event":"NO_POINTS"     // Message (String)
 }
+```
 
 
 Message Response
 
-sh
+```sh
 {
   "status": "GAME_ROOM_CREATED",    // Message (String)
   "data": {
@@ -180,6 +183,7 @@ sh
     ]
   }
 }
+```
 
 
 
@@ -190,16 +194,16 @@ This endpoint could be used by a player to join a game room or lobby.
 Message
 
 
-sh
+```sh
 {
     "name": "Sergio",   // Name (String)
     "code": "YQ5IHD"    // Room's ID (String)
 }
-
+```
 
 Message Response
 
-sh
+```sh
 {
   "status": "GAME_ROOM_CREATED",    // Message (String)
   "data": {
@@ -217,7 +221,7 @@ sh
     ]
   }
 }
-
+```
 
 
 ### Send answers
@@ -227,7 +231,7 @@ This endpoint could be used by a player to send their answers or responses to th
 Message
 
 
-sh
+```sh
 {  
     "event":"SEND_ANSWER",          // Message (String)
     "answer":{
@@ -236,11 +240,12 @@ sh
         "gameCode": "0STDB7"            // Room's ID  (String)
     }
 }
+```
 
 
 Message Response
 
-sh
+```sh
 {
   "status": "GAME_ROOM_CREATED",    // Message (String)
   "data": {
@@ -258,7 +263,7 @@ sh
     ]
   }
 }
-
+```
 
 
 ### Show players
@@ -268,15 +273,15 @@ This endpoint could be used to get a list of the players currently in the game.
 Message
 
 
-sh
+```sh
 {
     "event":"SHOW_PLAYERS"  // Message (String)
 }
-
+```
 
 Message Response
 
-sh
+```sh
 {
   "status": "GAME_ROOM_CREATED",    // Message (String)
   "data": {
@@ -294,7 +299,7 @@ sh
     ]
   }
 }
-
+```
 
 
 
