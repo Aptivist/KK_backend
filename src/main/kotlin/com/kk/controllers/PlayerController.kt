@@ -6,27 +6,26 @@ import com.kk.data.AnswerDataSource
 import com.kk.data.GameRoomDataSource
 import com.kk.data.models.BaseResult
 import com.kk.data.models.PlayerUser
+import com.kk.data.models.RoomConnectionStatus
 import com.kk.data.models.events.Answer
 import com.kk.data.models.toBaseResult
 import io.ktor.server.websocket.*
-import io.ktor.websocket.*
 
 
 class PlayerController(
     private val gameRoomDataSource: GameRoomDataSource,
     private val answerDataSource: AnswerDataSource
 ) {
-    suspend fun handlePlayerConnection(playerUser: PlayerUser) {
+    private fun setPlayerConnection(playerUser: PlayerUser) : RoomConnectionStatus {
         val currentRoom = gameRoomDataSource.getRoomByCode(playerUser.code)
         currentRoom?.let {
-            println("Player $playerUser")
             if (it.players.size + 1 <= it.rules.maxPlayers){
                 it.players.add(playerUser)
+                return RoomConnectionStatus.Success()
             } else {
-                playerUser.session.close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "EXCEEDED_MAXIMUM_PLAYERS"))
+                return RoomConnectionStatus.Error("EXCEEDED_MAXIMUM_PLAYERS")
             }
-        } ?: playerUser.session.close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "SESSION_CODE_NOT_VALID"))
-
+        } ?: return RoomConnectionStatus.Error("SESSION_CODE_NOT_VALID")
 
     }
 
@@ -39,7 +38,19 @@ class PlayerController(
             is GameEventPlayer.OnShowListPlayers -> {
                 showPlayers(event.player.code)
             }
+
+            is GameEventPlayer.OnRetryJoinRoom -> {
+                tryJoinRoom(event.player)
+            }
         }
+    }
+
+    suspend fun tryJoinRoom(playerUser: PlayerUser) {
+        val message = when(val result = setPlayerConnection(playerUser)){
+            is RoomConnectionStatus.Error -> result.message
+            is RoomConnectionStatus.Success -> result.message
+        }
+        playerUser.session.sendSerialized(BaseResult(message, null))
     }
 
     private fun sendAnswer(playerUser: PlayerUser, answer: Answer?) {
