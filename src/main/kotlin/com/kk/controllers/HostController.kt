@@ -36,6 +36,10 @@ class HostController(
                 startRound(event.hostUser.code)
             }
 
+            is GameEventHost.NextRound -> {
+                nextRound(event.hostUser.code)
+            }
+
             is GameEventHost.AddPoint -> {
                 addPoint(event.playerIdPoint, event.code)
             }
@@ -86,6 +90,15 @@ class HostController(
         delay((timer.time + 1) * TIME_MILLIS)
     }
 
+    private suspend fun nextRound(code: String){
+        val currentRoom = gameRoomDataSource.getRoomByCode(code ) ?: return
+
+        currentRoom.players.forEach { player ->
+            player.session.sendSerialized(
+                GameResult().toBaseResult("NEXT_ROUND")
+            )
+        }
+    }
     private suspend fun showAnswers(code: String) {
         val currentRoom = gameRoomDataSource.getRoomByCode(code ) ?: return
         val currentAnswers = answerDataSource.getAnswersByCode(code)
