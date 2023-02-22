@@ -150,6 +150,7 @@ class HostController(
 
     private suspend fun noPoints(code: String) {
         val currentRoom = gameRoomDataSource.getRoomByCode(code) ?: return
+        currentRoom.host.session.sendSerialized(GameResult().toBaseResult("NO_WINNER_ROUND"))
         currentRoom.players.forEach { player ->
             player.session.sendSerialized(
                 GameResult().toBaseResult("NO_WINNER_ROUND")
