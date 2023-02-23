@@ -128,6 +128,7 @@ class HostController(
     private suspend fun startGame(code: String){
         val currentRoom = gameRoomDataSource.getRoomByCode(code)
         val players = currentRoom?.players
+        gameRoomDataSource.updateStatusByCode(code,isInitialized = true)
         currentRoom?.host?.session?.sendSerialized(players.toBaseResult("INITIALIZED"))
         players?.forEach {
             it.session.sendSerialized(players.toBaseResult("INITIALIZED"))
