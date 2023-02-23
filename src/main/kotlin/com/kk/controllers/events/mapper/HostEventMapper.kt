@@ -8,6 +8,7 @@ fun HostEvent.toEvent(host: HostUser): GameEventHost {
     return when(event){
         "START_GAME" -> GameEventHost.OnStartGame(host)
         "START_ROUND" -> GameEventHost.OnStartRound(host)
+        "NEXT_ROUND" -> GameEventHost.NextRound(host)
         "ADD_POINT" -> GameEventHost.AddPoint(playerIdPoint?: "", host.code)
         "NO_POINTS" -> GameEventHost.NoPoints(host)
         "SHOW_ANSWERS" -> GameEventHost.ShowAnswers(host)

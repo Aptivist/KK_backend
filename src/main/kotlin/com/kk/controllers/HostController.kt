@@ -36,6 +36,10 @@ class HostController(
                 startRound(event.hostUser.code)
             }
 
+            is GameEventHost.NextRound -> {
+                nextRound(event.hostUser.code)
+            }
+
             is GameEventHost.AddPoint -> {
                 addPoint(event.playerIdPoint, event.code)
             }
@@ -86,6 +90,15 @@ class HostController(
         delay((timer.time + 1) * TIME_MILLIS)
     }
 
+    private suspend fun nextRound(code: String){
+        val currentRoom = gameRoomDataSource.getRoomByCode(code ) ?: return
+
+        currentRoom.players.forEach { player ->
+            player.session.sendSerialized(
+                GameResult().toBaseResult("NEXT_ROUND")
+            )
+        }
+    }
     private suspend fun showAnswers(code: String) {
         val currentRoom = gameRoomDataSource.getRoomByCode(code ) ?: return
         val currentAnswers = answerDataSource.getAnswersByCode(code)
@@ -129,7 +142,7 @@ class HostController(
         hostUser.session.sendSerialized(result.toBaseResult(statusType))
         currentRoom.players.forEach { player ->
             if (player.id == roundPlayerWon.id){
-                player.session.sendSerialized(result.toBaseResult("WINNER_ROUND"))
+                player.session.sendSerialized(result.toBaseResult(if (gameIsFinished) "GAME_FINISHED" else "WINNER_ROUND"))
             }else player.session.sendSerialized(result.toBaseResult(statusType))
         }
     }
@@ -137,6 +150,7 @@ class HostController(
 
     private suspend fun noPoints(code: String) {
         val currentRoom = gameRoomDataSource.getRoomByCode(code) ?: return
+        currentRoom.host.session.sendSerialized(GameResult().toBaseResult("NO_WINNER_ROUND"))
         currentRoom.players.forEach { player ->
             player.session.sendSerialized(
                 GameResult().toBaseResult("NO_WINNER_ROUND")
