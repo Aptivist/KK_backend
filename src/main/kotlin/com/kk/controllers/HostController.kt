@@ -142,7 +142,7 @@ class HostController(
         hostUser.session.sendSerialized(result.toBaseResult(statusType))
         currentRoom.players.forEach { player ->
             if (player.id == roundPlayerWon.id){
-                player.session.sendSerialized(result.toBaseResult("WINNER_ROUND"))
+                player.session.sendSerialized(result.toBaseResult(if (gameIsFinished) "GAME_FINISHED" else "WINNER_ROUND"))
             }else player.session.sendSerialized(result.toBaseResult(statusType))
         }
     }
