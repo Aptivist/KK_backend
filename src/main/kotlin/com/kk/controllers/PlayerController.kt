@@ -4,7 +4,9 @@ package com.kk.controllers
 import com.kk.controllers.events.GameEventPlayer
 import com.kk.data.AnswerDataSource
 import com.kk.data.GameRoomDataSource
+import com.kk.data.models.BaseResult
 import com.kk.data.models.PlayerUser
+import com.kk.data.models.RoomConnectionStatus
 import com.kk.data.models.events.Answer
 import com.kk.data.models.toBaseResult
 import io.ktor.server.websocket.*
@@ -14,12 +16,17 @@ class PlayerController(
     private val gameRoomDataSource: GameRoomDataSource,
     private val answerDataSource: AnswerDataSource
 ) {
-    fun handlePlayerConnection(playerUser: PlayerUser) {
+    private fun setPlayerConnection(playerUser: PlayerUser) : RoomConnectionStatus {
         val currentRoom = gameRoomDataSource.getRoomByCode(playerUser.code)
-        currentRoom?.players?.add(playerUser)
-        if (currentRoom == null) {
-            throw Exception("Game room not found")
-        } else println("Player $playerUser")
+        currentRoom?.let {
+            if (it.players.size + 1 <= it.rules.maxPlayers){
+                it.players.add(playerUser)
+                return RoomConnectionStatus.Success()
+            } else {
+                return RoomConnectionStatus.Error("EXCEEDED_MAXIMUM_PLAYERS")
+            }
+        } ?: return RoomConnectionStatus.Error("SESSION_CODE_NOT_VALID")
+
     }
 
     suspend fun onEventPlayer(event: GameEventPlayer) {
@@ -31,6 +38,18 @@ class PlayerController(
             is GameEventPlayer.OnShowListPlayers -> {
                 showPlayers(event.player.code)
             }
+
+            is GameEventPlayer.OnRetryJoinRoom -> {
+                tryJoinRoom(event.player)
+            }
+        }
+    }
+
+    suspend fun tryJoinRoom(playerUser: PlayerUser) {
+        when(val result = setPlayerConnection(playerUser)){
+            is RoomConnectionStatus.Error -> playerUser.session.sendSerialized(BaseResult(result.message, null))
+            is RoomConnectionStatus.Success -> playerUser.session.sendSerialized(playerUser.toBaseResult(result.message))
+
         }
     }
 
