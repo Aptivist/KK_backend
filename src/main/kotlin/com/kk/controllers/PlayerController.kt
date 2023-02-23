@@ -19,6 +19,7 @@ class PlayerController(
     private fun setPlayerConnection(playerUser: PlayerUser) : RoomConnectionStatus {
         val currentRoom = gameRoomDataSource.getRoomByCode(playerUser.code)
         currentRoom?.let {
+            if (currentRoom.isInitialized) return RoomConnectionStatus.Error("ROOM_INITIALIZED")
             if (it.players.size + 1 <= it.rules.maxPlayers){
                 it.players.add(playerUser)
                 return RoomConnectionStatus.Success()

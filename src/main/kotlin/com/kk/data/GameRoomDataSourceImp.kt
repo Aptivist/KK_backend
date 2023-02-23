@@ -16,6 +16,10 @@ class GameRoomDataSourceImp: GameRoomDataSource {
         return gameRooms.find { it.code == code }
     }
 
+    override fun updateStatusByCode(code: String, isInitialized: Boolean) {
+         gameRooms.find { it.code == code }?.isInitialized = isInitialized
+    }
+
     override fun removeRoom(gameRoom: GameRoom) {
         gameRooms.remove(gameRoom)
     }
