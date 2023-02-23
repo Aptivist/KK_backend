@@ -46,11 +46,11 @@ class PlayerController(
     }
 
     suspend fun tryJoinRoom(playerUser: PlayerUser) {
-        val message = when(val result = setPlayerConnection(playerUser)){
-            is RoomConnectionStatus.Error -> result.message
-            is RoomConnectionStatus.Success -> result.message
+        when(val result = setPlayerConnection(playerUser)){
+            is RoomConnectionStatus.Error -> playerUser.session.sendSerialized(BaseResult(result.message, null))
+            is RoomConnectionStatus.Success -> playerUser.session.sendSerialized(playerUser.toBaseResult(result.message))
+
         }
-        playerUser.session.sendSerialized(BaseResult(message, null))
     }
 
     private fun sendAnswer(playerUser: PlayerUser, answer: Answer?) {
