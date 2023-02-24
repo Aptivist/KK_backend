@@ -139,6 +139,7 @@ class HostController(
             listPlayers = if (gameIsFinished) currentRoom.players else emptyList(),
             roundPlayerWon = roundPlayerWon
         )
+        result.listPlayers?.sortedByDescending { it.points }
         val statusType = if (gameIsFinished) "GAME_FINISHED" else "ROUND_FINISHED"
         hostUser.session.sendSerialized(result.toBaseResult(statusType))
         currentRoom.players.forEach { player ->
