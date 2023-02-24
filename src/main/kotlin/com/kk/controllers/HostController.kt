@@ -136,10 +136,9 @@ class HostController(
     }
     private suspend fun notifyWinner(currentRoom: GameRoom, roundPlayerWon: PlayerUser, gameIsFinished: Boolean, hostUser: HostUser) {
         val result = GameResult(
-            listPlayers = if (gameIsFinished) currentRoom.players else emptyList(),
+            listPlayers = if (gameIsFinished) currentRoom.players.sortedByDescending { it.points } else emptyList(),
             roundPlayerWon = roundPlayerWon
         )
-        result.listPlayers?.sortedByDescending { it.points }?.reversed()
         val statusType = if (gameIsFinished) "GAME_FINISHED" else "ROUND_FINISHED"
         hostUser.session.sendSerialized(result.toBaseResult(statusType))
         currentRoom.players.forEach { player ->
